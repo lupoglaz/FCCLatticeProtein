@@ -32,6 +32,7 @@ public:
     int endMove();
     int crankShaftMove();
     int snakeMove();
+    int pullMove();
     
 
     cLatticeModel &operator=( const cLatticeModel &other );

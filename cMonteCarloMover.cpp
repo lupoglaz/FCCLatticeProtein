@@ -37,15 +37,18 @@ cMonteCarloMover::~cMonteCarloMover() {
 void cMonteCarloMover::move() {
     (*trialModel) = (*curModel);
 
-    std::uniform_int_distribution<int> distribution(1,3);
+    std::uniform_int_distribution<int> distribution(2,4);
     switch(distribution(generator)){
         case 1:
-            trialModel->endMove();
+            trialModel->pullMove();
             break;
         case 2:
-            trialModel->crankShaftMove();
+            trialModel->endMove();
             break;
         case 3:
+            trialModel->crankShaftMove();
+            break;
+        case 4:
             trialModel->snakeMove();
             break;
     }

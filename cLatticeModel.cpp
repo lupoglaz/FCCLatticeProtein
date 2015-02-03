@@ -274,6 +274,61 @@ int cLatticeModel::snakeMove() {
     checkProteinPosition();
 }
 
+int cLatticeModel::pullMove() {
+    std::uniform_int_distribution<int> distributionDirections(1,2);
+    std::uniform_int_distribution<int> distributionNodes(1,protein.size()-2);
+    int direction = 2;//distributionDirections(generator);
+    int idx = distributionNodes(generator);
+    int idx1;
+    if(direction==1){
+        idx1=idx-1;
+    }else{
+        idx1=idx+1;
+    }
+    std::vector<Vector<int>> emptyPositions;
+    for(int i=0;i<baseDirections.size();i++){
+        Vector<int> n_pos = protein[idx].pos+baseDirections[i];
+        if(getResidueFromIdx(n_pos)==-1){
+            if(areAdjacent(n_pos, protein[idx1].pos)){
+                emptyPositions.push_back(n_pos);
+            }
+        }
+    }
+    if(emptyPositions.size()==0){
+        return -1;
+    }
+    std::uniform_int_distribution<int> neighbour_distribution(0,emptyPositions.size()-1);
+    int neighbour_choice = neighbour_distribution(generator);
+    Vector<int> nextPos = protein[idx].pos;
+    moveResidue(idx,emptyPositions[neighbour_choice]);
+    
+    if(direction==1) {
+        for (int i = 1; i < protein.size(); i++) {
+            Vector<int> resPosOld = protein[i].pos;
+            moveResidue(i,nextPos);
+            if(i>2){
+                if(areAdjacent(nextPos,protein[i+1].pos)){
+                    break;
+                }
+            }
+            nextPos = resPosOld;
+            
+        }
+    }else{
+        for (int i = protein.size()-2; i > -1; i--) {
+            Vector<int> resPosOld = protein[i].pos;
+            moveResidue(i,nextPos);
+            if(i>0){
+                if(areAdjacent(nextPos,protein[i-1].pos)){
+                    break;
+                }
+            }
+            nextPos = resPosOld;
+        }
+    }
+    checkProteinPosition();
+}
+
 Vector<int> cLatticeModel::getProteinCM(){
     Vector<int> mCenter(0,0,0);
     for(int i=0;i<protein.size();i++){
