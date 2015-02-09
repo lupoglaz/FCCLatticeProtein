@@ -13,8 +13,9 @@ void runGLUT(int argc, char** argv){
                             1,2,1,2,1,2,     //HPHPHP
                             1,2,2,2,2,2,2,2,2,//HP8
                             1};             //H
-    //cMonteCarloMover MMC(protein, 10.0);
-    cMonteCarloMover MMC("1ATZ_distMat.dat", 10.0);
+    std::vector<int> proteinRR{1, 14, 15, 11, 16, 19, 9,15,1,1,16,9,1};
+    cMonteCarloMover MMC(proteinRR, 10.0);
+    //cMonteCarloMover MMC("1ATZ_distMat.dat", 10.0);
     //cLatticeModel lMdl(protein);
     framework.addObject(&MMC);
     Vector<double> lookAtPos = MMC.getProteinCenterPos();

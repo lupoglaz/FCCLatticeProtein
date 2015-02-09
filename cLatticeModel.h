@@ -13,6 +13,8 @@ public:
     Vector<int> pos;
     int ind;
     int type;
+    
+    void setColor() const;
 
     cAminoAcid &operator=( const cAminoAcid &other ){
         pos=other.pos;
@@ -43,6 +45,8 @@ public:
 
 private:
     int N;
+    
+    double **RREnergy;
 
     std::vector<Vector<double>> baseVectors;
     std::vector<Vector<int>> baseDirections;
@@ -68,6 +72,10 @@ private:
     void moveProtein(Vector<int> &dPos);
     void checkProteinPosition();
     
-    double computeEnergyHP();
+    
     double computeEnergyContacts();
+    double computeEnergyHP();
+    double computeEnergyRR();
+    
+    void loadRREnergy(const std::string filename);
 };

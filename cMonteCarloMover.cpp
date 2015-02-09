@@ -40,7 +40,7 @@ void cMonteCarloMover::move() {
     std::uniform_int_distribution<int> distribution(2,4);
     switch(distribution(generator)){
         case 1:
-            trialModel->pullMove();
+            trialModel->pullMove(); //does not work yet
             break;
         case 2:
             trialModel->endMove();
@@ -52,7 +52,7 @@ void cMonteCarloMover::move() {
             trialModel->snakeMove();
             break;
     }
-    
+        
     double E1 = trialModel->computeEnergy();
     if(E1<=E){
     

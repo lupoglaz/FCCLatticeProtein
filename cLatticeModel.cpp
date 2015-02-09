@@ -6,6 +6,7 @@ std::default_random_engine generator;
 
 cLatticeModel::cLatticeModel(std::vector<int> in_protein) {
     this->N = in_protein.size()+6;
+    
 
     initLattice();
     
@@ -16,6 +17,8 @@ cLatticeModel::cLatticeModel(std::vector<int> in_protein) {
     }
     
     checkProteinPosition();
+    RREnergy = NULL;
+    loadRREnergy("IRRMatrix.dat");
 
 }
 
@@ -92,6 +95,34 @@ cLatticeModel::~cLatticeModel() {
         delete [] occupationTable[i];
     }
     delete [] occupationTable;
+    if(RREnergy!=NULL){
+        for( int i=0;i<21;i++){
+            delete [] RREnergy[i];
+        }
+        delete [] RREnergy;
+    }
+}
+
+void cLatticeModel::loadRREnergy(const std::string filename){
+    
+    RREnergy = new double *[21];
+    for( int i=0;i<21;i++){
+        RREnergy[i] = new double [21];
+        for( int j=0;j<21;j++){
+            RREnergy[i][j] = 0;
+        }
+    }
+    std::ifstream myfile (filename.c_str());
+    double en;
+    int a,b;
+    for( int i=0;i<210;i++){
+        myfile>>a;
+        myfile>>b;
+        myfile>>en;
+        RREnergy[a][b]=en;
+        RREnergy[b][a]=en;
+    }
+    myfile.close();
 }
 
 void cLatticeModel::display(){
@@ -118,7 +149,7 @@ void cLatticeModel::display(){
         //crankShaftMove();
         //snakeMove();
     }
-
+    glColor4f(1.f, 1.f, 1.f, 1.0f);
     for(int i=0;i<protein.size()-1;i++){
         Vector<double> p1 = baseVectors[0]*(protein[i].pos.x)+baseVectors[1]*(protein[i].pos.y)+baseVectors[2]*(protein[i].pos.z);
         Vector<double> p2 = baseVectors[0]*(protein[i+1].pos.x)+baseVectors[1]*(protein[i+1].pos.y)+baseVectors[2]*(protein[i+1].pos.z);
@@ -127,13 +158,15 @@ void cLatticeModel::display(){
     }
 
     glEnd();
-    glColor4f(0.5f, 0.0f, 1.0f, 1.0f);
+    
     glBegin(GL_POINTS);
     for(int i=0;i<protein.size();i++){
-        if(protein[i].type==1)
+        /*if(protein[i].type==1)
             glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
         else
             glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        */
+        protein[i].setColor();
         Vector<double> p1 = baseVectors[0]*(protein[i].pos.x)+baseVectors[1]*(protein[i].pos.y)+baseVectors[2]*(protein[i].pos.z);
         glVertex3f(p1.x,p1.y,p1.z);
     }
@@ -364,7 +397,22 @@ cLatticeModel& cLatticeModel::operator=(const cLatticeModel &other) {
 
 double cLatticeModel::computeEnergy() {
     
-    return computeEnergyContacts();
+    //return computeEnergyContacts();
+    return computeEnergyRR();
+}
+
+double cLatticeModel::computeEnergyRR(){
+    double energy=0.0;
+    for(int idx=0;idx<protein.size();idx++){
+        if(protein[idx].type==2) continue;
+        for(int i=0;i<baseDirections.size();i++){
+            Vector<int> n_pos = protein[idx].pos + baseDirections[i];
+            int n_idx = getResidueFromIdx(n_pos);
+            if(n_idx==-1 || abs(n_idx-idx)<2) continue;
+            energy+=RREnergy[protein[idx].type][protein[n_idx].type];
+        }
+    }
+    return energy;
 }
 
 double cLatticeModel::computeEnergyHP(){
@@ -401,4 +449,33 @@ double cLatticeModel::computeEnergyContacts(){
 Vector<double> cLatticeModel::getProteinCenterPos(){
     Vector<int> cM = getProteinCM();
     return baseVectors[0]*cM.x+baseVectors[1]*cM.y+baseVectors[2]*cM.z;
+}
+
+#define AA_ORANGE 0.9f, 0.6f, 0.0f, 1.0f
+#define AA_BLUE 0.0f, 0.0f, 0.9f, 1.0f
+#define AA_RED 0.9f, 0.0f, 0.0f, 1.0f
+#define AA_MAGNETTA 0.9f, 0.0f, 0.9f, 1.0f
+#define AA_GREEN 0.0f, 0.9f, 0.0f, 1.0f
+#define AA_BLACK 0.0f, 0.0f, 0.0f, 1.0f
+void cAminoAcid::setColor() const{
+    switch(this->type){
+        case 0:
+            glColor4f(AA_BLACK);
+        case 1: case 6: case 16: case 17:
+            glColor4f(AA_ORANGE);
+            return;
+        case 3: case 4:
+            glColor4f(AA_BLUE);
+            return;
+        case 9: case 15:
+            glColor4f(AA_RED);
+            return;
+        case 7: case 12: case 14:
+            glColor4f(AA_MAGNETTA);
+            return;
+        default:
+            glColor4f(AA_GREEN);
+            return;
+    }
+    
 }
